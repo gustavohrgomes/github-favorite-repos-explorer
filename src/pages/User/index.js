@@ -31,8 +31,9 @@ export default class User extends Component {
 
   state = {
     stars: [],
-    loading: true,
     page: 1,
+    loading: true,
+    refreshing: false,
   };
 
   async componentDidMount() {
@@ -44,14 +45,17 @@ export default class User extends Component {
     const { navigation } = this.props;
     const user = navigation.getParam('user');
 
+    console.tron.log(page);
+
     const response = await api.get(`/users/${user.login}/starred`, {
       params: { page },
     });
 
     this.setState({
       stars: page >= 2 ? [...stars, ...response.data] : response.data,
-      loading: false,
       page,
+      loading: false,
+      refreshing: false,
     });
   };
 
@@ -63,9 +67,13 @@ export default class User extends Component {
     this.loadStarredRepos(nextPage);
   };
 
+  refreshList = () => {
+    this.setState({ refreshing: true, stars: [] }, this.loadStarredRepos);
+  };
+
   render() {
     const { navigation } = this.props;
-    const { stars, loading } = this.state;
+    const { stars, loading, refreshing } = this.state;
 
     const user = navigation.getParam('user');
 
@@ -84,6 +92,8 @@ export default class User extends Component {
             data={stars}
             onEndReachedThreshold={0.2}
             onEndReached={this.loadMoreStarredRepos}
+            onRefresh={this.refreshList}
+            refreshing={refreshing}
             keyExtractor={(star) => String(star.id)}
             renderItem={({ item }) => (
               <Starred>
