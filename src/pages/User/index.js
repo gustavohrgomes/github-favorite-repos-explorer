@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+
 import api from '../../services/api';
-import { isRequired } from 'react-native/Libraries/DeprecatedPropTypes/DeprecatedColorPropType';
 
 import {
   Container,
@@ -26,6 +26,7 @@ export default class User extends Component {
   static propTypes = {
     navigation: PropTypes.shape({
       getParam: PropTypes.func,
+      navigate: PropTypes.func,
     }).isRequired,
   };
 
@@ -44,8 +45,6 @@ export default class User extends Component {
     const { stars } = this.state;
     const { navigation } = this.props;
     const user = navigation.getParam('user');
-
-    console.tron.log(page);
 
     const response = await api.get(`/users/${user.login}/starred`, {
       params: { page },
@@ -69,6 +68,12 @@ export default class User extends Component {
 
   refreshList = () => {
     this.setState({ refreshing: true, stars: [] }, this.loadStarredRepos);
+  };
+
+  handleNavigate = (repository) => {
+    const { navigation } = this.props;
+
+    navigation.navigate('Repository', { repository });
   };
 
   render() {
@@ -96,7 +101,7 @@ export default class User extends Component {
             refreshing={refreshing}
             keyExtractor={(star) => String(star.id)}
             renderItem={({ item }) => (
-              <Starred>
+              <Starred onPress={() => this.handleNavigate(item)}>
                 <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
                 <Info>
                   <Title>{item.name}</Title>
